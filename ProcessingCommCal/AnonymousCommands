@@ -1,0 +1,6 @@
+System.schedule('CommCal Job 1', '0 0 * * * ?', new CommCalScheduler());
+System.schedule('CommCal Job 2', '0 10 * * * ?', new CommCalScheduler());
+System.schedule('CommCal Job 3', '0 20 * * * ?', new CommCalScheduler());
+System.schedule('CommCal Job 4', '0 30 * * * ?', new CommCalScheduler());
+System.schedule('CommCal Job 5', '0 40 * * * ?', new CommCalScheduler());
+System.schedule('CommCal Job 6', '0 50 * * * ?', new CommCalScheduler());
