@@ -6,11 +6,11 @@ public class BatchCommCalProcessing {
 
     String FAILSAFE_GPUSER_ID = 'Kiah'; //These will be turned to Ids when collectEssentialUserIds runs
     String TASK_OWNER_ID = 'Comm-Calendar';
-    String DEBUG_OWNER = 'Aminata';
+    String DEBUG_OWNER_ID = 'Aminata';
 
     public void processTasks(){
 
-      System.debug('running process!');
+    	System.debug('running process!');
 
         Boolean allGood = collectEssentialUserIds();
 
@@ -43,17 +43,17 @@ public class BatchCommCalProcessing {
             System.debug('saving ' + processedEvents.size() + ' events');
 
             try{
-              insert newTasks;
-              update processedEvents;
+            	insert newTasks;
+            	update processedEvents;
             } Catch(Exception e){
                 System.debug('Fatal error either adding tasks or saving event updates: ' + e.getMessage());
-              Task errorTask = new Task(
+            	Task errorTask = new Task(
                     Subject = '[Critical CommCal Error] Saving/Updating',
                     Description = e.getMessage(),
-                    WhatId = DEBUG_OWNER,
-                    Assigned_To__c = DEBUG_OWNER
-            );
-              insert errorTask;
+                    WhatId = DEBUG_OWNER_ID,
+                    Assigned_To__c = DEBUG_OWNER_ID
+        		);
+            	insert errorTask;
             }
 
 
@@ -72,17 +72,17 @@ public class BatchCommCalProcessing {
 
         try{
             String extractedSFObjectString = raw.substring(0,raw.indexOf('---SFOBJECT---')).trim().replace('\n','\\n').replace('\r','\\r');
-          System.debug('extracted string of sf object:' + extractedSFObjectString);
-          commObj = (Map<String, String>)JSON.deserialize(extractedSFObjectString, Map<String, String>.class);
+        	System.debug('extracted string of sf object:' + extractedSFObjectString);
+        	commObj = (Map<String, String>)JSON.deserialize(extractedSFObjectString, Map<String, String>.class);
         }catch(Exception e){
             String failure_message = 'failed to parse description field of event: ' + e.getMessage() + '\n\n' + raw;
             System.debug(failure_message);
-      Task errorTask = new Task(
+			Task errorTask = new Task(
                 Subject = '[Critical CommCal Error]',
                 Description = failure_message,
-                WhatId = DEBUG_OWNER,
-                Assigned_To__c = DEBUG_OWNER
-          );
+                WhatId = DEBUG_OWNER_ID,
+                Assigned_To__c = DEBUG_OWNER_ID
+        	);
             return errorTask;
         }
 
@@ -103,7 +103,7 @@ public class BatchCommCalProcessing {
 
             follow_ups.add('\n\nMISSING REQUIRED FIELD(S) (subject, body, contact)\nComm Object:   ' + raw);
             System.debug('Incomplete Comm object');
-             assignedUserId = FAILSAFE_GPUSER_ID;
+           	assignedUserId = FAILSAFE_GPUSER_ID;
 
         } else {
 
@@ -120,31 +120,43 @@ public class BatchCommCalProcessing {
 
             //-------------We need to get the contact object using the name------------
             try{
-                //lookup the contact by name field
-                Contact vContact = [SELECT Id
-                FROM Contact
-                WHERE Name = :contact
-                LIMIT 1];
+                Contact vContact = null;
 
-                System.debug('Contact found:' + contact);
+                if(isPhone(contact)){ //search by phone
+                    vContact = [SELECT Id, Name
+                    FROM Contact
+                    WHERE gp_phone1__c = :cleanPhone(contact)
+                    LIMIT 1];
+                } else if(isEmail(contact)){ //search by email
+                    vContact = [SELECT Id, Name
+                    FROM Contact
+                    WHERE gp_email__c = :cleanEmail(contact)
+                    LIMIT 1];
+                } else { //search by name
+					vContact = [SELECT Id, Name
+                    FROM Contact
+                    WHERE Name = :contact
+                    LIMIT 1];
+                }
 
+                System.debug('Contact found:' + vContact.Name);
                 contactID = vContact.Id;
 
             }catch(QueryException err){
                 //if none found then override assign-to and assign to Kiah with followup to note
-                System.debug('No matching contact found');
+                System.debug('No matching contact found: ' + err.getMessage());
                 follow_ups.add('No contact found matching the provided contact field: ' + contact);
                 if(assignedUserId.length() == 0) assignedUserId = FAILSAFE_GPUSER_ID; //someone should know if this happens, so catch failsafe
             }
         }
 
-    //-----------If we need to add a due date-------
+		//-----------If we need to add a due date-------
         if(dueDate != null){
             try{
                 List<String> dateArr = dueDate.split('-'); //AK gives YYYY-MM-DD format, conver to MM/DD/YYYY bc Apex is silly
                 if(dateArr.size() != 3) throw new MyException('Date Cannot be parsed');
                 String reformatedDate = dateArr[1] + '/' + dateArr[2] + '/' + dateArr[0];
-              due_date = Date.parse(reformatedDate);
+            	due_date = Date.parse(reformatedDate);
                 status = (due_date >= Date.today()) ? 'In Progress' : 'Completed';
             } catch(Exception e){
                 System.debug('Couldnt parse due date field');
@@ -156,13 +168,13 @@ public class BatchCommCalProcessing {
             due_date = Date.today();
         }
 
-    //-----------If we need to incorporate a follow-up bc of an error-------
+		//-----------If we need to incorporate a follow-up bc of an error-------
         if(follow_ups.size() > 0){
             String follow_up_string = String.join(follow_ups,'\n');
             body += '\n\n----------Follow Up Notes--------------\n\nIssue(s) Processing:\n' + follow_up_string;
         }
 
-    //-----------Finally actually create and save the task------
+		//-----------Finally actually create and save the task------
         System.debug('assigned id: ' + assignedUserId);
 
         Task result = new Task(
@@ -170,26 +182,26 @@ public class BatchCommCalProcessing {
                 Description = body,
                 WhoId = (contactID.length() > 0) ? contactId : null,
                 Status = status,
-                 WhatId = TASK_OWNER_ID,
+               	WhatId = TASK_OWNER_ID,
                 Assigned_To__c = (assignedUserId.length() > 0) ? assignedUserId : null,
                 ActivityDate = due_date
-          );
+        	);
         System.debug('created full task to return:' + result);
-    return result;
+		return result;
     }
 
     //----------------------Helpers----------------------------------------
 
     public Boolean collectEssentialUserIds(){ //because we always need the three essential IDs, just do them in one go. its the little things
-    allUsers = gatherAllGPUsers(); //Collect all GPUsers in one query to minimize SOQL calls
+		allUsers = gatherAllGPUsers(); //Collect all GPUsers in one query to minimize SOQL calls
 
         for(GP_User__c user : allUsers){
             if(user.Name == FAILSAFE_GPUSER_ID){
                 FAILSAFE_GPUSER_ID = user.Id;
             } else if(user.Name == TASK_OWNER_ID){
                 TASK_OWNER_ID = user.Id;
-            } else if(user.Name == DEBUG_OWNER){
-                DEBUG_OWNER = user.Id;
+            } else if(user.Name == DEBUG_OWNER_ID){
+                DEBUG_OWNER_ID = user.Id;
             }
         }
 
@@ -215,6 +227,25 @@ public class BatchCommCalProcessing {
         }
 
         return result;
+    }
+
+    //V1 of phone & email text cleaning & checking.
+    //Could be expanded to include more formats down the line if needed
+
+    public Boolean isPhone(String str){
+        return cleanPhone(str).isNumeric();
+    }
+
+    public Boolean isEmail(String str){
+        return cleanEmail(str).contains('@');
+    }
+
+    public String cleanPhone(String str){
+        return str.replace('(', '').replace(')', '').replace('-', '').deleteWhitespace();
+    }
+
+    public String cleanEmail(String str){
+        return str.deleteWhitespace();
     }
 
 
