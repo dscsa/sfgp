@@ -10,7 +10,7 @@ class TestBatchCommCalProcessing {
 
         testEvents.add(new Event(
             Subject = 'full and successful example to do',
-            Description = '{"subject":"full and successful example to do","body":"Drug Tablet Delayed Release in Order needs to be switched","contact":"655555555","assign_to":"Aminata","due_date":"2020-10-16"}---SFOBJECT---[{"subject": "Order cannot be matched by GSN","body": "Drug Tablet Delayed Release in Order needs to be switched","contact": "655555555","assign_to": "Adam","due_date": "2020-05-14"}]',
+            Description = '{"subject":"full and successful example to do","body":"Drug Tablet Delayed Release in Order needs to be switched","contact":"6555555555","assign_to":"Aminata","due_date":"2020-10-16"}---SFOBJECT---[{"subject": "Order cannot be matched by GSN","body": "Drug Tablet Delayed Release in Order needs to be switched","contact": "655555555","assign_to": "Adam","due_date": "2020-05-14"}]',
         	StartDateTime = DateTime.now().addMinutes(-10),
             DurationInMinutes = 30
         ));
@@ -54,7 +54,7 @@ class TestBatchCommCalProcessing {
 
         testEvents.add(new Event(
             Subject = 'missing required',
-            Description = '{"subject":"missing required","contact":"655555555","assign_to":"Aminata","due_date":"2020-10-16"}---SFOBJECT---[{"subject": "Order cannot be matched by GSN","body": "Drug Tablet Delayed Release in Order needs to be switched","contact": "655555555","assign_to": "Adam","due_date": "2020-05-14"}]',
+            Description = '{"subject":"missing required","contact":"655 555 5555","assign_to":"Aminata","due_date":"2020-10-16"}---SFOBJECT---[{"subject": "Order cannot be matched by GSN","body": "Drug Tablet Delayed Release in Order needs to be switched","contact": "655555555","assign_to": "Adam","due_date": "2020-05-14"}]',
             StartDateTime = DateTime.now().addMinutes(-10),
             DurationInMinutes = 30
         ));
