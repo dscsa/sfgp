@@ -104,7 +104,7 @@ public class BatchCommCalProcessing {
 
             follow_ups.add('\n\nMISSING REQUIRED FIELD(S) (subject, body, contact)\nComm Object:   ' + raw);
             System.debug('Incomplete Comm object');
-           	assignedUserId = FAILSAFE_GPUSER_ID;
+           	//assignedUserId = FAILSAFE_GPUSER_ID;
 
         } else {
 
@@ -114,7 +114,7 @@ public class BatchCommCalProcessing {
                 if(assignedUserId.length() == 0){
                     System.debug('No GP user to assign to found');
                     follow_ups.add('No GP user found matching the provided assign_to field: ' + assignTo);
-                    assignedUserId = FAILSAFE_GPUSER_ID;
+                    //assignedUserId = FAILSAFE_GPUSER_ID;
                 }
             }
 
@@ -147,7 +147,6 @@ public class BatchCommCalProcessing {
                 //if none found then override assign-to and assign to Kiah with followup to note
                 System.debug('No matching contact found: ' + err.getMessage());
                 follow_ups.add('No contact found matching the provided contact field: ' + contact);
-                if(assignedUserId.length() == 0) assignedUserId = FAILSAFE_GPUSER_ID; //someone should know if this happens, so catch failsafe
             }
         }
 
@@ -161,9 +160,8 @@ public class BatchCommCalProcessing {
                 status = (due_date >= Date.today()) ? 'In Progress' : 'Completed';
             } catch(Exception e){
                 System.debug('Couldnt parse due date field');
-                status = 'In Progress'; //dont let it slip by
                 follow_ups.add('Couldnt parse given due_date: ' + dueDate);
-                if(assignedUserId.length() == 0) assignedUserId = FAILSAFE_GPUSER_ID; //someone should know if this happens, so catch failsafe
+                //if(assignedUserId.length() == 0) assignedUserId = FAILSAFE_GPUSER_ID; //someone should know if this happens, so catch failsafe
             }
         } else { //then status will remain completed, want to make the due date today
             due_date = Date.today();
@@ -171,6 +169,8 @@ public class BatchCommCalProcessing {
 
 		//-----------If we need to incorporate a follow-up bc of an error-------
         if(follow_ups.size() > 0){
+            status = 'In Progress'; //dont let it slip by
+            if(assignedUserId.length() == 0) assignedUserId = FAILSAFE_GPUSER_ID; //someone should know if this happens, so catch failsafe
             String follow_up_string = String.join(follow_ups,'\n');
             body += '\n\n----------Follow Up Notes--------------\n\nIssue(s) Processing:\n' + follow_up_string;
         }
