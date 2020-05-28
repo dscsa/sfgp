@@ -17,7 +17,7 @@ class TestBatchCommCalProcessing {
 
         testEvents.add(new Event(
             Subject = 'full and successful example completed',
-            Description = '{"subject":"full and successful example complete","body":"Drug Tablet Delayed Release in Order needs to be switched","contact":"ami@ sirum.org","assign_to":"Jessica","due_date":"2020-02-16"}---SFOBJECT---[{"subject": "Order #39 cannot be matched by GSN","body": "Drug Tablet Delayed Release in Order needs to be switched","contact": "655555555","assign_to": "Adam","due_date": "2020-05-14"}]',
+            Description = '{"subject":"full and successful example complete","body":"Drug Tablet Delayed Release in Order needs to be switched","contact":"ami@ sirum.org","assign_to":"Kiah","due_date":"2020-02-16"}---SFOBJECT---[{"subject": "Order #39 cannot be matched by GSN","body": "Drug Tablet Delayed Release in Order needs to be switched","contact": "655555555","assign_to": "Adam","due_date": "2020-05-14"}]',
         	StartDateTime = DateTime.now().addMinutes(-10),
             DurationInMinutes = 30
 
@@ -61,7 +61,7 @@ class TestBatchCommCalProcessing {
 
         testEvents.add(new Event(
             Subject = 'misformated date',
-            Description = '{"subject":"full and successful example complete","body":"Drug Tablet Delayed Release in Order needs to be switched","contact":"(655)555 5555","assign_to":"Aminata","due_date":"2020/8-2"}---SFOBJECT---[{"subject": "Order cannot be matched by GSN","body": "Drug Tablet Delayed Release in Order needs to be switched","contact": "655555555","assign_to": "Adam","due_date": "2020-05-14"}]',
+            Description = '{"subject":"full and successful example complete","body":"Drug Tablet Delayed Release in Order needs to be switched","contact":"(655)555 5555","assign_to":"Jessica","due_date":"2020/8-2"}---SFOBJECT---[{"subject": "Order cannot be matched by GSN","body": "Drug Tablet Delayed Release in Order needs to be switched","contact": "655555555","assign_to": "Adam","due_date": "2020-05-14"}]',
             StartDateTime = DateTime.now().addMinutes(-10),
             DurationInMinutes = 30
         ));
