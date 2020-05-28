@@ -7,6 +7,7 @@ public class BatchCommCalProcessing {
     String FAILSAFE_GPUSER_ID = 'Kiah'; //These will be turned to Ids when collectEssentialUserIds runs
     String TASK_OWNER_ID = 'Comm-Calendar';
     String DEBUG_OWNER_ID = 'Aminata';
+    String GP_OWNER_ID = 'GoodPill Support';
 
     public void processTasks(){
 
@@ -183,6 +184,7 @@ public class BatchCommCalProcessing {
                 WhoId = (contactID.length() > 0) ? contactId : null,
                 Status = status,
                	WhatId = TASK_OWNER_ID,
+            	OwnerID = GP_OWNER_ID,
                 Assigned_To__c = (assignedUserId.length() > 0) ? assignedUserId : null,
                 ActivityDate = due_date
         	);
@@ -195,6 +197,8 @@ public class BatchCommCalProcessing {
     public Boolean collectEssentialUserIds(){ //because we always need the three essential IDs, just do them in one go. its the little things
 		allUsers = gatherAllGPUsers(); //Collect all GPUsers in one query to minimize SOQL calls
 
+        getGPOwnerID();
+
         for(GP_User__c user : allUsers){
             if(user.Name == FAILSAFE_GPUSER_ID){
                 FAILSAFE_GPUSER_ID = user.Id;
@@ -206,6 +210,22 @@ public class BatchCommCalProcessing {
         }
 
         return allUsers.size() > 0; //otherwise big error somewhere
+    }
+
+    public void getGPOwnerID(){
+        User result = null;
+
+        try{
+            result = [SELECT Id, Name
+                        FROM User
+                     	WHERE Name = :GP_OWNER_ID
+                     	LIMIT 1];
+            //System.debug('GP users found:' + result);
+        }catch(QueryException err){
+            System.debug('error with query for all users: ' + err.getMessage());
+        }
+
+        GP_OWNER_ID = result.Id;
     }
 
     public String getGPUserId(String name){
